@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>参加者一覧</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; color: #333; padding: 0; margin: 0; }
+    
+    .header-container { position: sticky; top: 0; z-index: 100; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border-radius: 0 0 16px 16px; padding: 10px 15px 15px; margin-bottom: 15px;}
+    h1 { text-align: center; font-size: 16px; color: #4CAF50; margin: 0 0 10px 0; }
+    
+    .control-panel { display: flex; gap: 10px; align-items: center; }
+    select { flex: 1; padding: 12px; font-size: 16px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; }
+    .refresh-btn { background: #e8f5e9; color: #4CAF50; border: none; padding: 12px 15px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; white-space: nowrap; }
+    .refresh-btn:active { background: #c8e6c9; }
+    
+    .card-container { display: grid; gap: 15px; grid-template-columns: 1fr; padding: 0 15px 20px; }
+    
+    .card { background: #fff; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-left: 6px solid #ccc; position: relative; padding-bottom: 55px; }
+    .card.female { border-left-color: #e91e63; } .card.male { border-left-color: #2196f3; }
+    
+    .card-header { border-bottom: 2px dashed #eee; padding-bottom: 10px; margin-bottom: 15px; padding-right: 70px; }
+    .card-name { font-size: 20px; font-weight: bold; margin-bottom: 5px; color: #222;}
+    .card-sub { font-size: 12px; color: #555; background: #f0f0f0; padding: 4px 8px; border-radius: 12px; margin-right: 5px; display: inline-block;}
+    .card-badge { position: absolute; top: 15px; right: 15px; font-size: 11px; font-weight: bold; padding: 4px 8px; border-radius: 4px; color: white; }
+    .card.female .card-badge { background: #e91e63; } .card.male .card-badge { background: #2196f3; }
+    
+    .number-area { background: #fff8e1; padding: 10px; border-radius: 8px; margin-bottom: 15px; display: flex; align-items: center; justify-content: space-between; }
+    .number-area label { font-size: 13px; font-weight: bold; color: #d84315; }
+    .number-input { width: 60px; padding: 8px; font-size: 16px; text-align: center; border: 1px solid #ffe082; border-radius: 4px; margin-right: 10px; }
+    .save-number-btn { background: #ff9800; color: white; border: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; font-size: 14px; cursor: pointer; }
+    
+    .section-lbl { font-size: 13px; font-weight: bold; border-bottom: 1px solid #ddd; margin: 20px 0 10px; padding-bottom: 5px; color: #4CAF50; }
+    .card-item { font-size: 14px; margin-bottom: 10px; background: #fdfdfd; padding: 10px; border-radius: 8px; border: 1px solid #f0f0f0; line-height: 1.4;}
+    .card-label { font-size: 11px; color: #888; display: block; margin-bottom: 3px; }
+    .msg-box { background: #e8f4f8; border: none; margin-top: 15px;}
+    .msg-box .card-label { color: #0056b3; font-weight: bold;}
+    
+    .delete-btn { position: absolute; bottom: 15px; right: 15px; background: #ff4d4d; color: white; border: none; padding: 8px 15px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; }
+  </style>
+</head>
+<body>
+
+  <div class="header-container">
+    <h1>本日の参加者プロフィール</h1>
+    <div class="control-panel">
+      <select id="nameFilter" onchange="filterCards()"><option value="ALL">全員を表示する</option></select>
+      <button class="refresh-btn" onclick="loadProfiles()">更新</button>
+    </div>
+  </div>
+
+  <div class="card-container" id="profileList">
+    <p style="text-align:center; padding-top:20px;">データを読み込んでいます...</p>
+  </div>
+
+  <script>
+    const ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwGHU6v8VrUT1qsqy9o_UdV2vm9CSrODaXI17MihLGQjLuXHh9SUK_vR3HSVU4F0bzucQ/exec"; 
+    let allProfiles = []; 
+
+    window.onload = loadProfiles;
+
+    function loadProfiles() {
+      fetch(ENDPOINT_URL, { method: 'GET', redirect: 'follow' })
+      .then(r => r.json()).then(data => { allProfiles = data; setupDropdown(data); renderCards(data); })
+      .catch(e => { document.getElementById('profileList').innerHTML = '<p style="color:red; text-align:center; padding-top:20px;">通信エラー</p>'; });
+    }
+
+    function setupDropdown(data) {
+      const select = document.getElementById('nameFilter');
+      select.innerHTML = '<option value="ALL">全員を表示する</option>';
+      const women = data.filter(r => r[1] === '女性');
+      const men = data.filter(r => r[1] === '男性');
+
+      if(women.length > 0) {
+        const groupW = document.createElement('optgroup'); groupW.label = '■ 女性';
+        women.forEach(r => { const opt = document.createElement('option'); opt.value = r[0]; opt.text = (r[19] ? `[No.${r[19]}] ` : '') + r[2]; groupW.appendChild(opt); });
+        select.appendChild(groupW);
+      }
+      if(men.length > 0) {
+        const groupM = document.createElement('optgroup'); groupM.label = '■ 男性';
+        men.forEach(r => { const opt = document.createElement('option'); opt.value = r[0]; opt.text = (r[19] ? `[No.${r[19]}] ` : '') + r[2]; groupM.appendChild(opt); });
+        select.appendChild(groupM);
+      }
+    }
+
+    function filterCards() {
+      const id = document.getElementById('nameFilter').value;
+      renderCards(id === 'ALL' ? allProfiles : allProfiles.filter(r => r[0] === id));
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function renderCards(data) {
+      const list = document.getElementById('profileList'); list.innerHTML = ''; 
+      if(data.length === 0) { list.innerHTML = '<p style="text-align:center;">データがありません</p>'; return; }
+
+      data.forEach(row => {
+        const card = document.createElement('div');
+        card.className = row[1] === '女性' ? 'card female' : 'card male';
+        
+        card.innerHTML = `
+          <div class="card-badge">${escapeHTML(row[1])}</div>
+          <div class="card-header">
+            <div class="card-name">${escapeHTML(row[2])}</div>
+            <div class="card-sub">${escapeHTML(row[3])}</div>
+            <div class="card-sub">${escapeHTML(row[4])}</div>
+          </div>
+          <div class="number-area">
+            <div><label>🎟️ 受付番号</label> <input type="number" class="number-input" value="${escapeHTML(row[19] || '')}"></div>
+            <button class="save-number-btn" onclick="saveNumber('${row[0]}', this)">保存</button>
+          </div>
+
+          <div class="section-lbl">☕ 趣味・ライフスタイル</div>
+          <div class="card-item"><span class="card-label">自分を動物に例えると？</span>${escapeHTML(row[5] || '未')}</div>
+          <div class="card-item"><span class="card-label">休日はどっち派？</span>${escapeHTML(row[6])}</div>
+          <div class="card-item"><span class="card-label">趣味・休日の過ごし方</span>${escapeHTML(row[7])}</div>
+          <div class="card-item"><span class="card-label">好きな食べ物・飲み物</span>${escapeHTML(row[8] || '未')}</div>
+          <div class="card-item"><span class="card-label">ストレス解消法</span>${escapeHTML(row[9] || '未')}</div>
+
+          <div class="section-lbl">❤️ パートナーシップの価値観</div>
+          <div class="card-item"><span class="card-label">理想のパートナー像</span>${escapeHTML(row[10] || '未')}</div>
+          <div class="card-item"><span class="card-label">理想の距離感</span>${escapeHTML(row[11])}</div>
+          <div class="card-item"><span class="card-label">意見が食い違ったら</span>${escapeHTML(row[12])}</div>
+          <div class="card-item"><span class="card-label">愛情を感じる行動</span>${escapeHTML(row[13] || '未')}</div>
+          <div class="card-item"><span class="card-label">会話で求めること</span>${escapeHTML(row[14] || '未')}</div>
+
+          <div class="section-lbl">🏠 生活・将来</div>
+          <div class="card-item"><span class="card-label">金銭感覚</span>${escapeHTML(row[15] || '未')}</div>
+          <div class="card-item"><span class="card-label">家事のスタンス</span>${escapeHTML(row[16] || '未')}</div>
+          <div class="card-item"><span class="card-label">人生で大切にしたいこと</span>${escapeHTML(row[17] || '未')}</div>
+
+          <div class="card-item msg-box"><span class="card-label">参加者へひとこと</span>${escapeHTML(row[18])}</div>
+          <button class="delete-btn" onclick="deleteCard('${row[0]}', this)">🗑️ 削除</button>
+        `;
+        list.appendChild(card);
+      });
+    }
+
+    function saveNumber(id, btn) {
+      const val = btn.closest('.card').querySelector('.number-input').value;
+      btn.textContent = '保存中'; btn.disabled = true;
+      fetch(ENDPOINT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: "update_number", id: id, number: val }) })
+      .then(r => r.json()).then(() => {
+        btn.textContent = '✓'; btn.style.background = '#4CAF50';
+        const p = allProfiles.find(r => r[0] === id); if(p) p[19] = val; setupDropdown(allProfiles);
+        setTimeout(() => { btn.textContent = '保存'; btn.style.background = '#ff9800'; btn.disabled = false; }, 2000);
+      }).catch(() => { alert("エラー"); btn.textContent = '保存'; btn.disabled = false; });
+    }
+
+    function deleteCard(id, btn) {
+      if(!confirm("削除しますか？")) return;
+      const card = btn.closest('.card'); card.style.display = 'none';
+      allProfiles = allProfiles.filter(r => r[0] !== id); setupDropdown(allProfiles);
+      fetch(ENDPOINT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: "delete", id: id }) })
+      .then(r => r.json()).then(() => card.remove()).catch(() => { alert("エラー"); card.style.display = 'block'; });
+    }
+
+    function escapeHTML(s) { return !s ? '' : s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;'); }
+  </script>
+</body>
+</html>

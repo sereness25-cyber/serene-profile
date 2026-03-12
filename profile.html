@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>プロフィール入力</title>
+  <style>
+    body { font-family: 'Helvetica Neue', Arial, sans-serif; background-color: #f0f2f5; color: #333; padding: 0; margin: 0; }
+    h1 { text-align: center; font-size: 18px; color: #fff; background-color: #4CAF50; margin: 0; padding: 15px 0; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+    .form-box { background: #fff; padding: 20px; margin: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    label { display: block; font-weight: bold; margin-top: 20px; font-size: 14px; color: #2c3e50; }
+    .section-title { margin-top: 30px; margin-bottom: 10px; padding-bottom: 5px; border-bottom: 2px solid #4CAF50; color: #4CAF50; font-size: 16px; font-weight: bold; }
+    .hint { font-size: 12px; color: #7f8c8d; font-weight: normal; margin-bottom: 5px; display: block;}
+    input[type="text"], select, textarea { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #ccd1d9; border-radius: 8px; box-sizing: border-box; font-size: 16px; background-color: #fafafa; }
+    input[type="text"]:focus, select:focus, textarea:focus { border-color: #4CAF50; outline: none; background-color: #fff; }
+    .radio-group { display: flex; gap: 15px; margin-top: 8px; }
+    .radio-group label { margin: 0; font-weight: normal; background: #f9f9f9; border: 1px solid #ccc; padding: 10px; border-radius: 8px; flex: 1; text-align: center; font-size: 16px; }
+    input[type="radio"] { transform: scale(1.3); margin-right: 5px; }
+    button { width: 100%; background-color: #4CAF50; color: white; padding: 16px; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; margin-top: 30px; box-shadow: 0 4px 6px rgba(76, 175, 80, 0.3); }
+    button:active { background-color: #45a049; transform: translateY(2px); box-shadow: none; }
+  </style>
+</head>
+<body>
+
+  <h1>プロフィール入力</h1>
+  <div class="form-box">
+    <form id="profileForm" onsubmit="event.preventDefault(); submitForm();">
+      
+      <div class="section-title">👤 基本プロフィール</div>
+      <label>性別</label>
+      <div class="radio-group">
+        <label><input type="radio" name="gender" value="女性" required> 女性</label>
+        <label><input type="radio" name="gender" value="男性" required> 男性</label>
+      </div>
+      <label>ニックネーム</label><input type="text" name="name" required placeholder="例：タロウ">
+      <label>年代</label>
+      <select name="age" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="20代前半">20代前半</option><option value="20代後半">20代後半</option>
+        <option value="30代前半">30代前半</option><option value="30代後半">30代後半</option>
+        <option value="40代前半">40代前半</option><option value="40代後半">40代後半</option>
+        <option value="50代以上">50代以上</option>
+      </select>
+      <label>お仕事</label><input type="text" name="job" required placeholder="例：事務、接客業、エンジニアなど">
+
+      <div class="section-title">☕ 趣味・ライフスタイル</div>
+      <label>自分を動物に例えると？</label><input type="text" name="animal" placeholder="例：マイペースな猫">
+      <label>休日はどっち派？</label>
+      <select name="indoor" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="インドア派🏠">インドア派🏠</option><option value="アウトドア派🏕️">アウトドア派🏕️</option>
+        <option value="バランス重視☕">バランス重視☕</option>
+      </select>
+      <label>趣味・休日の過ごし方</label><input type="text" name="hobby" required placeholder="例：カフェ巡り、ドライブ">
+      <label>好きな食べ物・飲み物</label><input type="text" name="food" placeholder="例：オムライス、お酒全般">
+      <label>ストレス解消法は？</label><input type="text" name="stress" placeholder="例：サウナで整う、美味しいものを食べる">
+
+      <div class="section-title">❤️ パートナーシップの価値観</div>
+      <label>理想のパートナー像</label><input type="text" name="partner" placeholder="例：一緒にいて気を使わない人">
+      <label>理想の距離感は？</label>
+      <select name="distance" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="毎日連絡・なるべく会いたい">毎日連絡・なるべく会いたい</option>
+        <option value="連絡はマメに、会うのは週1〜2回">連絡はマメに、会うのは週1〜2回</option>
+        <option value="お互いのペースで干渉しすぎず">お互いのペースで干渉しすぎず</option>
+      </select>
+      <label>愛情を感じる行動は？</label>
+      <select name="love_lang" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="言葉で伝えてもらうこと">言葉で伝えてもらうこと</option>
+        <option value="一緒に時間を過ごすこと">一緒に時間を過ごすこと</option>
+        <option value="スキンシップ">スキンシップ</option>
+        <option value="家事などのサポート・気遣い">家事などのサポート・気遣い</option>
+      </select>
+      <label>会話で相手に求めていること</label>
+      <select name="communication" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="とにかく共感して聞いてほしい">とにかく共感して聞いてほしい</option>
+        <option value="一緒に解決策を考えてほしい">一緒に解決策を考えてほしい</option>
+        <option value="楽しく笑い合いたい">楽しく笑い合いたい</option>
+      </select>
+      <label>意見が食い違った時は？</label>
+      <select name="conflict" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="その場ですぐに話し合う">その場ですぐに話し合う</option>
+        <option value="少し時間を置いてから冷静に話す">少し時間を置いてから冷静に話す</option>
+        <option value="相手の意見を尊重して合わせる">相手の意見を尊重して合わせる</option>
+      </select>
+
+      <div class="section-title">🏠 生活・将来の価値観</div>
+      <label>金銭感覚（何にお金を使いたい？）</label>
+      <select name="finance" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="旅行や食事などの「経験」">旅行や食事などの「経験」</option>
+        <option value="将来のための「貯金・投資」">将来のための「貯金・投資」</option>
+        <option value="自分の「趣味・自己投資」">自分の「趣味・自己投資」</option>
+      </select>
+      <label>家事のスタンスは？</label>
+      <select name="housework" required>
+        <option value="" disabled selected>選択してください</option>
+        <option value="気づいた方がやる">気づいた方がやる</option>
+        <option value="得意なことを分担する">得意なことを分担する</option>
+        <option value="なるべく一緒にやる">なるべく一緒にやる</option>
+      </select>
+      <label>これからの人生で一番大切にしたいこと <span class="hint">（例：笑顔、挑戦、穏やかな生活など）</span></label>
+      <input type="text" name="future" required>
+
+      <div class="section-title">✨ メッセージ</div>
+      <label>参加者へひとこと</label>
+      <textarea name="message" rows="3" required></textarea>
+      
+      <button type="submit" id="submitBtn">登録する</button>
+    </form>
+  </div>
+
+  <script>
+    const ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwGHU6v8VrUT1qsqy9o_UdV2vm9CSrODaXI17MihLGQjLuXHh9SUK_vR3HSVU4F0bzucQ/exec";
+
+    function submitForm() {
+      const btn = document.getElementById('submitBtn');
+      btn.textContent = '送信中...'; btn.disabled = true;
+      const form = document.getElementById('profileForm');
+      
+      const payload = {
+        gender: form.gender.value, name: form.name.value, age: form.age.value, job: form.job.value,
+        animal: form.animal.value, indoor: form.indoor.value, hobby: form.hobby.value, food: form.food.value, stress: form.stress.value,
+        partner: form.partner.value, distance: form.distance.value, conflict: form.conflict.value,
+        love_lang: form.love_lang.value, communication: form.communication.value, finance: form.finance.value, housework: form.housework.value, future: form.future.value,
+        message: form.message.value
+      };
+
+      fetch(ENDPOINT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify(payload) })
+      .then(response => response.json())
+      .then(data => { alert("登録が完了しました！"); form.reset(); btn.textContent = '登録する'; btn.disabled = false; window.scrollTo(0,0); })
+      .catch(error => { alert("通信エラーが起きました。"); btn.textContent = 'エラー（もう一度押す）'; btn.disabled = false; });
+    }
+  </script>
+</body>
+</html>
