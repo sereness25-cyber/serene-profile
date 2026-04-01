@@ -58,12 +58,59 @@
     const ENDPOINT_URL = "https://script.google.com/macros/s/AKfycbwGHU6v8VrUT1qsqy9o_UdV2vm9CSrODaXI17MihLGQjLuXHh9SUK_vR3HSVU4F0bzucQ/exec"; 
     let allProfiles = []; 
 
-    window.onload = loadProfiles;
+    // ★ 修正：合図を待たず、この行が読み込まれた瞬間に最速でスタートする！
+    loadProfiles();
 
     function loadProfiles() {
+      const list = document.getElementById('profileList');
+      const cachedData = localStorage.getItem('profilesCache');
+      
+      // 1. スマホに記憶されている前回のデータがあれば、それを「一瞬で」表示する
+      if (cachedData) {
+        try {
+          const parsedData = JSON.parse(cachedData);
+          if (Array.isArray(parsedData)) {
+            allProfiles = parsedData;
+            setupDropdown(allProfiles);
+            renderCards(allProfiles);
+          }
+        } catch (e) {
+          console.error("キャッシュエラー");
+        }
+      } else {
+        // 初めて開いた時だけローディングを表示
+        list.innerHTML = '<p style="text-align:center; padding-top:20px;">⏳ データを読み込んでいます...<br><span style="font-size:12px; color:#888;">(Googleサーバーと通信中)</span></p>';
+      }
+
+      // 2. 裏側で最新データをこっそり取得する
       fetch(ENDPOINT_URL, { method: 'GET', redirect: 'follow' })
-      .then(r => r.json()).then(data => { allProfiles = data; setupDropdown(data); renderCards(data); })
-      .catch(e => { document.getElementById('profileList').innerHTML = '<p style="color:red; text-align:center; padding-top:20px;">通信エラー</p>'; });
+      .then(r => r.json()).then(data => { 
+        if (!Array.isArray(data)) return; // エラーデータの場合は無視する安全対策
+        
+        const newDataString = JSON.stringify(data);
+        
+        // 3. 前回の記憶と比べて「変化があった時だけ」画面を更新する
+        if (cachedData !== newDataString) {
+          localStorage.setItem('profilesCache', newDataString);
+          
+          const filterEl = document.getElementById('nameFilter');
+          const currentFilter = filterEl ? filterEl.value : 'ALL';
+          
+          allProfiles = data; 
+          setupDropdown(data); 
+          
+          // 絞り込み状態を元に戻す
+          if (document.getElementById('nameFilter')) {
+            document.getElementById('nameFilter').value = currentFilter || 'ALL';
+          }
+          filterCards(); 
+        }
+      })
+      .catch(e => { 
+        if (!cachedData) {
+          list.innerHTML = '<p style="color:red; text-align:center; padding-top:20px;">通信エラー</p>'; 
+        }
+      });
     }
 
     function setupDropdown(data) {
@@ -142,7 +189,11 @@
       fetch(ENDPOINT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: "update_number", id: id, number: val }) })
       .then(r => r.json()).then(() => {
         btn.textContent = '✓'; btn.style.background = '#4CAF50';
-        const p = allProfiles.find(r => r[0] === id); if(p) p[19] = val; setupDropdown(allProfiles);
+        const p = allProfiles.find(r => r[0] === id); if(p) p[19] = val; 
+        
+        setupDropdown(allProfiles);
+        localStorage.setItem('profilesCache', JSON.stringify(allProfiles)); 
+        
         setTimeout(() => { btn.textContent = '保存'; btn.style.background = '#ff9800'; btn.disabled = false; }, 2000);
       }).catch(() => { alert("エラー"); btn.textContent = '保存'; btn.disabled = false; });
     }
@@ -150,7 +201,11 @@
     function deleteCard(id, btn) {
       if(!confirm("削除しますか？")) return;
       const card = btn.closest('.card'); card.style.display = 'none';
-      allProfiles = allProfiles.filter(r => r[0] !== id); setupDropdown(allProfiles);
+      allProfiles = allProfiles.filter(r => r[0] !== id); 
+      
+      setupDropdown(allProfiles);
+      localStorage.setItem('profilesCache', JSON.stringify(allProfiles)); 
+
       fetch(ENDPOINT_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain' }, body: JSON.stringify({ action: "delete", id: id }) })
       .then(r => r.json()).then(() => card.remove()).catch(() => { alert("エラー"); card.style.display = 'block'; });
     }
